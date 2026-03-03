@@ -9,6 +9,8 @@ namespace BalanceBrackets
 {
     internal class Program
     {
+        static string oper = "+-*/";
+        static string prioritet = "1122";
         static bool isBalanceOneTypeBrackets(string s)
         {
             int balance = 0;
@@ -44,7 +46,7 @@ namespace BalanceBrackets
         static int calculate(string s)
         {
             Stack <int> stack = new Stack<int>();
-            string oper = "+-*/";
+            
             foreach (char b in s)
             {
                 if (oper.IndexOf(b) >= 0)
@@ -64,6 +66,49 @@ namespace BalanceBrackets
             }
             return stack.Pop();
         }
+
+        static int getPrioritet(char c)
+        {
+            return 1;
+        }
+
+        static Queue<string> getBackExpressin(string expression)
+        { 
+            Queue<string> queueBackExpression = new Queue<string>();
+            Stack<char> stackOperations = new Stack<char>();
+            foreach (char item in expression)
+            {
+                if (item == '(') stackOperations.Push(item);
+                else if (oper.IndexOf(item) >= 0)
+                {
+                    while (stackOperations.Count > 0)
+                    {
+                        if (stackOperations.Peek() == '(') { stackOperations.Push(item); break; }
+                        else if (stackOperations.Peek() == ')')
+                        {
+                            while (stackOperations.Peek() != '(')
+                            {
+                                queueBackExpression.Append(stackOperations.Pop().ToString());
+                            }
+                            stackOperations.Pop();
+                        }
+                        else if (getPrioritet(stackOperations.Peek()) >= getPrioritet(item))
+                        {
+                            queueBackExpression.Append(stackOperations.Pop().ToString());
+                        }
+                        else
+                        {
+                            stackOperations.Push(item); break;
+                        }
+                    }
+                }
+                else
+                    queueBackExpression.Append((item - 48).ToString());
+            }
+            while(stackOperations.Count > 0)
+                queueBackExpression.Append(stackOperations.Pop().ToString());
+            return queueBackExpression;
+        }
         static void Main(string[] args)
         {
             //string s = ")(";
@@ -71,6 +116,9 @@ namespace BalanceBrackets
             //s = "25 + 9 * (15- 16/(2+3)+[5-8]";
             //Console.WriteLine(isBalanceBrackets(s));
             Console.WriteLine(calculate("236*+"));
+            Queue<string> expres = getBackExpressin("2+3*5");
+            foreach (string item in expres) 
+                Console.Write(item);
         }
     }
 }
