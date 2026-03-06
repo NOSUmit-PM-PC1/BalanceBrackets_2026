@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -43,17 +44,17 @@ namespace BalanceBrackets
             return stack.Count == 0;
         }
 
-        static int calculate(string s)
+        static int calculate(Queue<string> expression)
         {
             Stack <int> stack = new Stack<int>();
             
-            foreach (char b in s)
+            foreach (var item in expression)
             {
-                if (oper.IndexOf(b) >= 0)
+                if (isOperation(item[0]))
                 { 
                     int op1 = stack.Pop();
                     int op2 = stack.Pop();
-                    switch (b)
+                    switch (item[0])
                     {
                         case '+': stack.Push(op1 + op2); break;
                         case '-': stack.Push(op2 - op1); break;
@@ -62,63 +63,108 @@ namespace BalanceBrackets
                     }
                 }
                 else
-                    stack.Push(b - 48);
+                    stack.Push(Convert.ToInt32(item));
             }
             return stack.Pop();
         }
 
         static int getPrioritet(char c)
         {
-            return 1;
+            int ind = oper.IndexOf(c);
+            if (ind >= 0) { return prioritet[ind]; }
+            return -1;
         }
 
-        static Queue<string> getBackExpressin(string expression)
+        static bool isOperation(char c)
+        {
+            return oper.IndexOf(c) >= 0;
+        }
+
+        static void getAllFromStackToStartBack(Stack<char> stack, Queue<string> queue)
+        {
+            while (stack.Count > 0)
+            {
+                var item = stack.Pop();
+                if (item == '(') return;
+                queue.Enqueue(item.ToString());
+            }
+        }
+
+        static void printQueue(Queue<string> queue)
+        {
+            Console.Write("!");
+            foreach (string item in queue)
+                Console.Write(item + "|");
+            Console.WriteLine("!");
+        }
+
+        static Queue<string> getBackExpression(string expression)
         { 
+
+            Queue<string> queueElements = getElementsOfExpression(expression);
+            printQueue(queueElements);
             Queue<string> queueBackExpression = new Queue<string>();
             Stack<char> stackOperations = new Stack<char>();
-            foreach (char item in expression)
+            
+            foreach (var item in queueElements)
             {
-                if (item == '(') stackOperations.Push(item);
-                else if (oper.IndexOf(item) >= 0)
+                if (item == "(") stackOperations.Push(item[0]);
+                else if (item == ")")
+                {
+                    getAllFromStackToStartBack(stackOperations, queueBackExpression);
+                }
+                else if (isOperation(item[0]))
                 {
                     while (stackOperations.Count > 0)
                     {
-                        if (stackOperations.Peek() == '(') { stackOperations.Push(item); break; }
-                        else if (stackOperations.Peek() == ')')
+                        if (getPrioritet(stackOperations.Peek()) >= getPrioritet(item[0]))
                         {
-                            while (stackOperations.Peek() != '(')
-                            {
-                                queueBackExpression.Append(stackOperations.Pop().ToString());
-                            }
-                            stackOperations.Pop();
+                            queueBackExpression.Enqueue(stackOperations.Pop().ToString());
                         }
-                        else if (getPrioritet(stackOperations.Peek()) >= getPrioritet(item))
-                        {
-                            queueBackExpression.Append(stackOperations.Pop().ToString());
-                        }
-                        else
-                        {
-                            stackOperations.Push(item); break;
-                        }
+                        else break;
                     }
+                    stackOperations.Push(item[0]);
                 }
                 else
-                    queueBackExpression.Append((item - 48).ToString());
+                    queueBackExpression.Enqueue(item);
             }
             while(stackOperations.Count > 0)
-                queueBackExpression.Append(stackOperations.Pop().ToString());
+                queueBackExpression.Enqueue(stackOperations.Pop().ToString());
             return queueBackExpression;
+        }
+
+        static Queue<string> getElementsOfExpression(string expression)
+        {
+            Queue<string> elementsOfExpression = new Queue<string>();
+            string newNum = "";
+            foreach (char item in expression)
+            {
+                if (char.IsDigit(item)) newNum += item;
+                else
+                {
+                    if (newNum != "")
+                    {
+                        elementsOfExpression.Enqueue(newNum);
+                        newNum = "";
+                    }
+                    elementsOfExpression.Enqueue(item.ToString());
+                }
+            }
+            if (newNum != "") elementsOfExpression.Enqueue(newNum);
+            return elementsOfExpression;
         }
         static void Main(string[] args)
         {
-            //string s = ")(";
+            string s = ")(";
             //Console.WriteLine(isBalanceOneTypeBrackets(s));
-            //s = "25 + 9 * (15- 16/(2+3)+[5-8]";
             //Console.WriteLine(isBalanceBrackets(s));
-            Console.WriteLine(calculate("236*+"));
-            Queue<string> expres = getBackExpressin("2+3*5");
-            foreach (string item in expres) 
-                Console.Write(item);
+            Console.WriteLine(21 + 91 * (11 - 6123 / (12 + 38) + (5465 - 821)));
+            s = "2^10+15*(7*3^2-8)";
+            //s = "2+3*5";
+            Console.WriteLine(s);
+            Queue<string> expres = getBackExpression(s);
+            printQueue(expres);
+            Console.WriteLine(calculate(expres));
         }
     }
 }
