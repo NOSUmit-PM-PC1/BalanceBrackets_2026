@@ -10,8 +10,18 @@ namespace BalanceBrackets
 {
     internal class Program
     {
-        static string oper = "+-*/";
-        static string prioritet = "1122";
+        //static string oper = "+-*/";
+        //static string prioritet = "1122";
+        static Dictionary<char, int> prioritet = new Dictionary<char, int>()
+        {
+            {'^', 3 },
+            {'+', 1 },
+            {'-', 1 },
+            {'*', 2 },
+            {'/', 2 },
+            {'(', 0 }
+        };
+
         static bool isBalanceOneTypeBrackets(string s)
         {
             int balance = 0;
@@ -60,6 +70,7 @@ namespace BalanceBrackets
                         case '-': stack.Push(op2 - op1); break;
                         case '*': stack.Push(op1 * op2); break;
                         case '/': stack.Push(op2 / op1); break;
+                        case '^': stack.Push(power(op2, op1)); break;
                     }
                 }
                 else
@@ -68,16 +79,22 @@ namespace BalanceBrackets
             return stack.Pop();
         }
 
+        private static int power(int num, int stepen)
+        {
+            int ans = 1;
+            for (int i = 0; i < stepen; i++) 
+                ans *= num;
+            return ans;
+        }
+
         static int getPrioritet(char c)
         {
-            int ind = oper.IndexOf(c);
-            if (ind >= 0) { return prioritet[ind]; }
-            return -1;
+            return prioritet[c];
         }
 
         static bool isOperation(char c)
         {
-            return oper.IndexOf(c) >= 0;
+            return prioritet.ContainsKey(c);
         }
 
         static void getAllFromStackToStartBack(Stack<char> stack, Queue<string> queue)
@@ -158,7 +175,7 @@ namespace BalanceBrackets
             string s = ")(";
             //Console.WriteLine(isBalanceOneTypeBrackets(s));
             //Console.WriteLine(isBalanceBrackets(s));
-            Console.WriteLine(21 + 91 * (11 - 6123 / (12 + 38) + (5465 - 821)));
+            Console.WriteLine("2^10 + 15 * (7 * 3 ^ 2 - 8) =1849");
             s = "2^10+15*(7*3^2-8)";
             //s = "2+3*5";
             Console.WriteLine(s);
